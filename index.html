@@ -409,14 +409,16 @@
       viewReveal.classList.remove("hidden");
     }
 
-    btnBackToList.addEventListener("click", () => {
-      selectedPlayer = null;
-      location.hash = "#/play";
-    });
+  btnBackToList.addEventListener("click", () => {
+    selectedPlayer = null;
+    showPlayList();
+  });
 
-    btnReveal.addEventListener("click", () => {
-      showReveal();
-    });
+  btnDone.addEventListener("click", () => {
+    selectedPlayer = null;
+    showPlayList();
+  });
+
 
     btnDone.addEventListener("click", () => {
       selectedPlayer = null;
