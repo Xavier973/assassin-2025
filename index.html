@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jeu d’assassin</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --card: #121623;
+      --text: #e9eefc;
+      --muted: #9aa6c2;
+      --btn: #1b2340;
+      --btn2: #22315f;
+      --danger: #7a1f2b;
+      --ok: #1f6f3a;
+      --radius: 16px;
+      --pad: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --max: 720px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    body { margin:0; background: var(--bg); color: var(--text); }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 18px; }
+    .top {
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 12px; margin-bottom: 14px;
+    }
+    .title { font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+    .pill {
+      font-size: 12px; color: var(--muted);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 6px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.03);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .grid { display:grid; gap: 10px; }
+    .btn {
+      width:100%;
+      border: 1px solid rgba(255,255,255,.10);
+      background: var(--btn);
+      color: var(--text);
+      padding: 14px 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: .2px;
+      cursor:pointer;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary { background: var(--btn2); }
+    .btn.danger { background: var(--danger); }
+    .btn.ok { background: var(--ok); }
+
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .row { display:flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1 1 160px; }
+
+    .list { display:flex; flex-direction:column; gap:10px; margin-top: 8px; }
+    .check {
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding: 12px 12px; border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+    }
+    .check label { font-weight: 650; }
+    input[type="checkbox"] { width: 20px; height: 20px; }
+
+    .big {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 10px;
+    }
+    .target {
+      font-size: 26px;
+      font-weight: 900;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.05);
+      border: 1px dashed rgba(255,255,255,.18);
+      text-align:center;
+      margin: 12px 0 14px;
+    }
+    .hidden { display:none; }
+    .footerLink {
+      margin-top: 10px;
+      text-align:center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    a { color: #b8c7ff; text-decoration: none; }
+    a:active { opacity: .8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title" id="headerTitle">Jeu d’assassin</div>
+      <div class="pill" id="statusPill">—</div>
+    </div>
+
+    <!-- ADMIN -->
+    <section id="viewAdmin" class="card hidden">
+      <p class="big">Admin</p>
+      <p class="muted">
+        Coche les présents, puis <b>Générer</b>.
+        Ensuite passe en mode joueurs et fais tourner le téléphone.
+      </p>
+
+      <div id="presentList" class="list"></div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn ok" id="btnGenerate">Générer le tirage</button>
+        <button class="btn secondary" id="btnGoPlay" disabled>Aller au mode joueurs</button>
+      </div>
+
+      <button class="btn danger" id="btnReset" style="margin-top:10px;">Réinitialiser (effacer tirage)</button>
+      <p class="muted" id="adminMsg" style="margin-top:10px;"></p>
+    </section>
+
+    <!-- PLAY: LISTE DES NOMS -->
+    <section id="viewPlayList" class="card hidden">
+      <p class="big">Choisis ton nom</p>
+      <p class="muted">Fair-play : clique uniquement sur ton nom 🙂</p>
+      <div id="nameButtons" class="grid" style="margin-top:10px;"></div>
+      <div class="footerLink">
+        <a href="#/admin">Admin</a>
+      </div>
+    </section>
+
+    <!-- CONFIRM -->
+    <section id="viewConfirm" class="card hidden">
+      <p class="big">Confirmation</p>
+      <p class="muted">Tu es bien :</p>
+      <div class="target" id="confirmName">—</div>
+      <div class="row">
+        <button class="btn secondary" id="btnBackToList">Retour</button>
+        <button class="btn ok" id="btnReveal">Révéler ma cible</button>
+      </div>
+    </section>
+
+    <!-- REVEAL -->
+    <section id="viewReveal" class="card hidden">
+      <p class="big">Ta cible</p>
+      <div class="target" id="targetName">—</div>
+      <button class="btn" id="btnDone">OK, j’ai compris</button>
+      <p class="muted" style="margin-top:10px;">
+        Ne dis pas la cible à voix haute 😄
+      </p>
+    </section>
+
+    <section class="card">
+      <p class="muted" style="margin:0;">
+        Astuce : mets le téléphone en <b>luminosité élevée</b> + <b>rotation verrouillée</b>.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    /***********************
+     * CONFIG : participants
+     ***********************/
+    const PARTICIPANTS = [
+      // Mets ici les prénoms (max ~10 comme tu veux)
+      "Alice", "Bruno", "Chloé", "David", "Emma",
+      "Farid", "Gaëlle", "Hugo", "Inès", "Jules",
+    ];
+
+    const STORAGE_KEY = "assassin_v1_state";
+
+    /***********************
+     * Utils
+     ***********************/
+    function shuffle(arr) {
+      // Fisher-Yates
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function saveState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function clearState() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function makeMapping(presents) {
+      if (presents.length < 2) {
+        throw new Error("Il faut au moins 2 participants.");
+      }
+      const order = shuffle(presents);
+      const mapping = {};
+      for (let i = 0; i < order.length; i++) {
+        mapping[order[i]] = order[(i + 1) % order.length];
+      }
+      return { order, mapping };
+    }
+
+    /***********************
+     * DOM refs
+     ***********************/
+    const el = (id) => document.getElementById(id);
+
+    const viewAdmin = el("viewAdmin");
+    const viewPlayList = el("viewPlayList");
+    const viewConfirm = el("viewConfirm");
+    const viewReveal = el("viewReveal");
+
+    const statusPill = el("statusPill");
+    const headerTitle = el("headerTitle");
+
+    const presentList = el("presentList");
+    const nameButtons = el("nameButtons");
+
+    const btnGenerate = el("btnGenerate");
+    const btnGoPlay = el("btnGoPlay");
+    const btnReset = el("btnReset");
+
+    const adminMsg = el("adminMsg");
+
+    const confirmName = el("confirmName");
+    const btnBackToList = el("btnBackToList");
+    const btnReveal = el("btnReveal");
+
+    const targetName = el("targetName");
+    const btnDone = el("btnDone");
+
+    /***********************
+     * App state (runtime)
+     ***********************/
+    let selectedPlayer = null;
+
+    function setStatus() {
+      const state = loadState();
+      if (!state || !state.mapping) {
+        statusPill.textContent = "Tirage : non généré";
+        return;
+      }
+      const n = Object.keys(state.mapping).length;
+      statusPill.textContent = `Tirage : OK (${n})`;
+    }
+
+    function hideAll() {
+      viewAdmin.classList.add("hidden");
+      viewPlayList.classList.add("hidden");
+      viewConfirm.classList.add("hidden");
+      viewReveal.classList.add("hidden");
+    }
+
+    function route() {
+      setStatus();
+      const hash = location.hash || "#/play";
+      if (hash.startsWith("#/admin")) {
+        showAdmin();
+      } else {
+        showPlayList();
+      }
+    }
+
+    /***********************
+     * Admin view
+     ***********************/
+    function showAdmin() {
+      hideAll();
+      headerTitle.textContent = "Jeu d’assassin — Admin";
+
+      // Build present checklist
+      presentList.innerHTML = "";
+      const state = loadState();
+      const defaultPresents = PARTICIPANTS.reduce((acc, name) => (acc[name] = true, acc), {});
+      const savedPresents = state?.presents ?? defaultPresents;
+
+      PARTICIPANTS.forEach((name) => {
+        const row = document.createElement("div");
+        row.className = "check";
+
+        const left = document.createElement("label");
+        left.textContent = name;
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!savedPresents[name];
+        cb.addEventListener("change", () => {
+          const current = loadState() || {};
+          const presents = current.presents || {};
+          presents[name] = cb.checked;
+          saveState({ ...current, presents });
+          adminMsg.textContent = "";
+        });
+
+        row.appendChild(left);
+        row.appendChild(cb);
+        presentList.appendChild(row);
+      });
+
+      // Enable "Go play" only if mapping exists
+      btnGoPlay.disabled = !(state && state.mapping);
+
+      adminMsg.textContent = state?.mapping
+        ? "Tirage déjà généré. Tu peux aller en mode joueurs."
+        : "Aucun tirage pour l’instant.";
+
+      viewAdmin.classList.remove("hidden");
+      setStatus();
+    }
+
+    btnGenerate.addEventListener("click", () => {
+      const current = loadState() || {};
+      const presentsObj = current.presents || PARTICIPANTS.reduce((acc, n) => (acc[n] = true, acc), {});
+      const presents = Object.entries(presentsObj)
+        .filter(([, isOn]) => isOn)
+        .map(([name]) => name);
+
+      try {
+        const { mapping } = makeMapping(presents);
+        saveState({ ...current, mapping, generatedAt: Date.now(), presentCount: presents.length });
+        adminMsg.textContent = `Tirage généré pour ${presents.length} participant(s).`;
+        btnGoPlay.disabled = false;
+        setStatus();
+      } catch (e) {
+        adminMsg.textContent = e.message || "Impossible de générer le tirage.";
+      }
+    });
+
+    btnGoPlay.addEventListener("click", () => {
+      location.hash = "#/play";
+    });
+
+    btnReset.addEventListener("click", () => {
+      if (!confirm("Effacer le tirage et repartir de zéro ?")) return;
+      clearState();
+      adminMsg.textContent = "Tirage effacé.";
+      btnGoPlay.disabled = true;
+      setStatus();
+      showAdmin();
+    });
+
+    /***********************
+     * Player view
+     ***********************/
+    function showPlayList() {
+      hideAll();
+      headerTitle.textContent = "Jeu d’assassin";
+
+      const state = loadState();
+      const mapping = state?.mapping;
+
+      nameButtons.innerHTML = "";
+
+      if (!mapping) {
+        const p = document.createElement("p");
+        p.className = "muted";
+        p.textContent = "Tirage non généré. Va dans Admin pour générer le tirage.";
+        nameButtons.appendChild(p);
+      } else {
+        const names = Object.keys(mapping).sort((a, b) => a.localeCompare(b));
+        names.forEach((name) => {
+          const b = document.createElement("button");
+          b.className = "btn";
+          b.textContent = name;
+          b.addEventListener("click", () => {
+            selectedPlayer = name;
+            showConfirm();
+          });
+          nameButtons.appendChild(b);
+        });
+      }
+
+      viewPlayList.classList.remove("hidden");
+      setStatus();
+    }
+
+    function showConfirm() {
+      hideAll();
+      headerTitle.textContent = "Jeu d’assassin";
+      confirmName.textContent = selectedPlayer ?? "—";
+      viewConfirm.classList.remove("hidden");
+    }
+
+    function showReveal() {
+      hideAll();
+      headerTitle.textContent = "Jeu d’assassin";
+      const state = loadState();
+      const mapping = state?.mapping || {};
+      const target = mapping[selectedPlayer] || "—";
+      targetName.textContent = target;
+      viewReveal.classList.remove("hidden");
+    }
+
+    btnBackToList.addEventListener("click", () => {
+      selectedPlayer = null;
+      location.hash = "#/play";
+    });
+
+    btnReveal.addEventListener("click", () => {
+      showReveal();
+    });
+
+    btnDone.addEventListener("click", () => {
+      selectedPlayer = null;
+      location.hash = "#/play";
+    });
+
+    /***********************
+     * Routing
+     ***********************/
+    window.addEventListener("hashchange", route);
+    route();
+  </script>
+</body>
+</html>
