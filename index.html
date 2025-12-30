@@ -179,7 +179,6 @@
      * Utils
      ***********************/
     function shuffle(arr) {
-      // Fisher-Yates
       const a = arr.slice();
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -286,7 +285,6 @@
       hideAll();
       headerTitle.textContent = "Jeu d’assassin — Admin";
 
-      // Build present checklist
       presentList.innerHTML = "";
       const state = loadState();
       const defaultPresents = PARTICIPANTS.reduce((acc, name) => (acc[name] = true, acc), {});
@@ -315,7 +313,6 @@
         presentList.appendChild(row);
       });
 
-      // Enable "Go play" only if mapping exists
       btnGoPlay.disabled = !(state && state.mapping);
 
       adminMsg.textContent = state?.mapping
@@ -409,20 +406,20 @@
       viewReveal.classList.remove("hidden");
     }
 
-  btnBackToList.addEventListener("click", () => {
-    selectedPlayer = null;
-    showPlayList();
-  });
+    // ✅ FIX: on revient à la liste sans dépendre d'un hashchange
+    btnBackToList.addEventListener("click", () => {
+      selectedPlayer = null;
+      showPlayList();
+    });
 
-  btnDone.addEventListener("click", () => {
-    selectedPlayer = null;
-    showPlayList();
-  });
+    btnReveal.addEventListener("click", () => {
+      showReveal();
+    });
 
-
+    // ✅ FIX: idem ici
     btnDone.addEventListener("click", () => {
       selectedPlayer = null;
-      location.hash = "#/play";
+      showPlayList();
     });
 
     /***********************
